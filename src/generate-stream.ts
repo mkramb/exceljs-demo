@@ -46,16 +46,16 @@ async function createExcelSpreadSheet(filename: string) {
     const currentRow = worksheet.addRow(row);
 
     // Commit a completed row to stream
-    currentRow.commit();
-
-    // Important, don't call commit for formatting to be applied,
-    // which means the current worksheet is buffered in-memory
-    // https://github.com/exceljs/exceljs/issues/686
+    // currentRow.commit();
   }
+
+  // Important, don't call commit for bellow formatting to be applied,
+  // which means the current worksheet is buffered in-memory
+  // https://github.com/exceljs/exceljs/issues/686
 
   // formatting
   for (const column of worksheet.columns) {
-      column.width = seenMaxCellWidth;
+    column.width = seenMaxCellWidth;
   }
 
   worksheet.commit();
