@@ -1,3 +1,4 @@
+import fs from "fs";
 import ExcelJS, { Style } from "exceljs";
 
 function calculateMaxRowWidth(_ignore: unknown) {
@@ -6,9 +7,14 @@ function calculateMaxRowWidth(_ignore: unknown) {
 }
 
 async function createExcelSpreadSheet(filename: string) {
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet("My Sheet");
+  const stream = fs.createWriteStream(filename);
+  const workbook = new ExcelJS.stream.xlsx.WorkbookWriter({
+    stream: stream,
+    useStyles: true,
+    useSharedStrings: true,
+  });
 
+  const worksheet = workbook.addWorksheet("My Sheet");
   const headerStyle: Partial<Style> = {
     alignment: {
       horizontal: "left",
@@ -26,6 +32,7 @@ async function createExcelSpreadSheet(filename: string) {
   ];
 
   let seenMaxCellWidth = 0;
+
   const rows = [
     { id: 1, name: "John Doe", dob: new Date(1970, 1, 1) },
     { id: 2, name: "Jane Doe", dob: new Date(1965, 1, 7) },
@@ -35,15 +42,24 @@ async function createExcelSpreadSheet(filename: string) {
 
   for (const row of rows) {
     seenMaxCellWidth = calculateMaxRowWidth(row);
-    worksheet.addRow(row).commit();
+
+    const currentRow = worksheet.addRow(row);
+
+    // Commit a completed row to stream
+    currentRow.commit();
+
+    // Important, don't call commit for formatting to be applied,
+    // which means the current worksheet is buffered in-memory
+    // https://github.com/exceljs/exceljs/issues/686
   }
 
   // formatting
   for (const column of worksheet.columns) {
-    column.width = seenMaxCellWidth;
+      column.width = seenMaxCellWidth;
   }
 
-  await workbook.xlsx.writeFile(filename);
+  worksheet.commit();
+  workbook.commit();
 }
 
 const filename = `testing${new Date().getTime()}.xlsx`;

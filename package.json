@@ -2,7 +2,8 @@
   "name": "exceljs-demo-stream",
   "version": "1.0.0",
   "scripts": {
-    "generate-report": "ts-node src/generate.ts"
+    "generate-report": "ts-node src/generate.ts",
+    "generate-report-stream": "ts-node src/generate-stream.ts"
   },
   "dependencies": {
     "exceljs": "~4.3.0",
